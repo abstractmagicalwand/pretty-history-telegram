@@ -9,12 +9,11 @@
     "dev": "yarn install && yarn build:dev",
     "prod": "yarn install --production && yarn build:prod",
     "build:dev": "./node_modules/.bin/webpack --config webpack.config.js",
-    "build:prod": "./node_modules/.bin/webpack -p --config webpack.config.prod.js",
-    "dev:fish": "yarn install; yarn build:dev",
-    "prod:fish": "yarn install --production; yarn build:prod"
+    "build:prod": "./node_modules/.bin/webpack -p --config webpack.config.prod.js"
   },
   "devDependencies": {
     "babel-core": "^6.24.1",
+    "babel-eslint": "^7.2.3",
     "babel-loader": "^6.4.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
@@ -32,12 +31,15 @@
     "webpack-dev-server": "^2.4.2"
   },
   "dependencies": {
-    "babel-eslint": "^7.2.3",
+    "bootstrap": "3",
+    "emoji-shortnames": "^3.0.0",
     "express": "^4.15.3",
     "normalize.css": "^7.0.0",
     "ramda": "^0.24.1",
     "react": "^15.5.4",
-    "react-dom": "^15.5.4"
+    "react-bootstrap": "^0.31.0",
+    "react-dom": "^15.5.4",
+    "react-toggle": "^4.0.1"
   },
   "babel": {
     "presets": [

@@ -16,13 +16,20 @@ module.exports = {
         use: 'babel-loader',
       }, {
         test: /\.css$/,
+        include: /node_modules/,
+        use: [
+          'style-loader',
+          'css-loader',
+        ],
+      }, {
+        test: /\.css$/,
         exclude: /node_modules/,
         use: [
           'style-loader?sourceMap',
           'css-loader?modules&importLoaders=1&localIdentName=[local]-[hash:base64:5]',
         ],
       }, {
-        test: /\.(jpe?g|png|gif|svg)$/,
+        test: /\.(jpe?g|png|gif|svg|eot|ttf|woff|woff2)$/,
         use: 'file-loader',
       },
     ],

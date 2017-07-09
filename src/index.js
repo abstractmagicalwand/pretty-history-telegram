@@ -1,36 +1,31 @@
 import React, {Component} from 'react'
 import {render} from 'react-dom'
+
+import Button from 'react-bootstrap/lib/Button'
+import MenuItem from 'react-bootstrap/lib/MenuItem'
+import DropdownButton from 'react-bootstrap/lib/DropdownButton'
+import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar'
+import Toggle from 'react-toggle'
 import pipe from 'ramda/src/pipe'
+import join from 'ramda/src/join'
+import adjust from 'ramda/src/adjust'
+import toUpper from 'ramda/src/toUpper'
+import partial from 'ramda/src/partial'
 
-import './main.css'
+import 'normalize.css/normalize.css'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'react-toggle/style.css'
+import styles from './index.css'
 
-const emojis = [
-  ':sunglasses:',
-  ':smile:',
-  ':laughing:',
-  ':blush:',
-  ':smiley:',
-  ':relaxed:',
-  ':smirk:',
-  ':relieved:',
-  ':laughing:',
-  ':grin:',
-  ':wink:',
-  ':sweat_smile:',
-  ':no_mouth:',
-  ':see_no_evil:',
-  ':hear_no_evil:',
-  ':speak_no_evil:',
-  ':smiley_cat:',
-  ':smile_cat:',
-  ':heart_eyes_cat:',
-  ':kissing_cat:',
-  ':smirk_cat:',
-  ':scream_cat:',
-  ':crying_cat_face:',
-  ':joy_cat:',
-  ':pouting_cat:',
-]
+import emojis from './emojis-by-categories.json'
+
+const MOBILE = 'mobile'
+const DESKTOP = 'desktop'
+
+const toUpperFirst = pipe(
+  partial(adjust, [toUpper, 0]),
+  join('')
+)
 
 const getRandomArbitrary = min => max =>
   () => Math.floor(Math.random() * (max - min)) + min
@@ -38,7 +33,7 @@ const getRandomArbitrary = min => max =>
 const getRandomIdx = arr => getRandom => () => arr[getRandom()]
 
 const getRandomEmoji =
-  getRandomIdx(emojis)(getRandomArbitrary(0)(emojis.length))
+  getRandomIdx(emojis.people)(getRandomArbitrary(0)(emojis.people.length))
 
 const around = after => befor => str => `${befor}${str}${after}`
 const start = befor => str => `${befor}${str}`
@@ -56,6 +51,7 @@ class PrettyHistoryTelegram extends Component {
     output: '',
     focus: true,
     isMobile: false,
+    isAvatars: true,
   }
 
   transform = () => {
@@ -67,10 +63,11 @@ class PrettyHistoryTelegram extends Component {
     }
 
     const {output} = input.split('\n').reduce((acc, rawLine) => {
-      const line = rawLine.trim()
       const forwarded = false
       const reply = true
+      const message = false
       const nicks = {...acc.nicks}
+      const line = rawLine.trim()
       const isReply = line.indexOf('In reply to') > -1
       const isForwarded = line.indexOf('Forwarded') > -1
 
@@ -80,117 +77,110 @@ class PrettyHistoryTelegram extends Component {
         && /:$/i.test(line)) { // mobile
         const nick = line.slice(0, line.length - 1)
 
-        if (!nicks[nick]) nicks[nick] = getRandomEmoji()
-
-        const output = [
-          ...acc.output,
-          bold(`${nick} ${nicks[nick]}`),
-        ]
+        if (!nicks[nick] && this.state.isAvatars) nicks[nick] = getRandomEmoji()
 
         return {
           ...acc,
           forwarded,
           reply,
           nicks,
-          output,
           message: true,
+          output: [
+            ...acc.output,
+            bold(this.state.isAvatars ? `${nick} ${nicks[nick]}` : nick),
+          ],
         }
       } else if (!isForwarded && /\[\d{2}:\d{2}\s[\wа-яё]+\]/i.test(line)) {
         const nextLine = line.split('[')
         const nick = nextLine[0]
 
-        if (!nicks[nick]) nicks[nick] = getRandomEmoji()
-
-        const output = [
-          ...acc.output,
-          bold(nextLine.join(` ${nicks[nick]} [`)),
-        ]
+        if (!nicks[nick] && this.state.isAvatars) nicks[nick] = getRandomEmoji()
 
         return {
           ...acc,
           forwarded,
           reply,
           nicks,
-          output,
-          message: false,
+          message,
+          output: [
+            ...acc.output,
+            bold(this.state.isAvatars ? nextLine.join(` ${nicks[nick]} [`)
+            : nextLine.join('')),
+          ],
         }
       } else if (!isForwarded
         && /\[\d{2}:\d{2}:\d{2}\s[\wа-яё]+\]/i.test(line)) {
         const nextLine = line.split('] ')
         const nick = nextLine[1]
 
-        if (!nicks[nick]) nicks[nick] = getRandomEmoji()
-
-        const output = [
-          ...acc.output,
-          bold(nextLine.join(`] ${nicks[nick]} `)),
-        ]
+        if (!nicks[nick] && this.state.isAvatars) nicks[nick] = getRandomEmoji()
 
         return {
           ...acc,
           forwarded,
           reply,
           nicks,
-          output,
-          message: false,
+          message,
+          output: [
+            ...acc.output,
+            bold(
+              this.state.isAvatars
+                ? nextLine.join(`] ${nicks[nick]} `)
+                : nextLine.join('')
+            ),
+          ],
         }
       } else if (!isForwarded
         && /\[\d{2}.\d{2}.\d{2}\s\d{2}:\d{2}\]/.test(line)) {
         const nextLine = line.split(',')
         const nick = nextLine[0]
-        if (!nicks[nick]) nicks[nick] = getRandomEmoji()
 
-        const forwarded = false
-        const reply = true
-        const output = [
-          ...acc.output,
-          bold(nextLine.join(` ${nicks[nick]} `)),
-        ]
+        if (!nicks[nick] && this.state.isAvatars) nicks[nick] = getRandomEmoji()
 
         return {
           ...acc,
-          forwarded,
-          reply,
           nicks,
-          output,
-          message: false,
+          message,
+          forwarded: false,
+          reply: true,
+          output: [
+            ...acc.output,
+            bold(
+              this.state.isAvatars
+                ? nextLine.join(` ${nicks[nick]} `)
+                : nextLine.join('')
+            ),
+          ],
         }
       } else if (isReply || isForwarded) {
-        const output = [...acc.output, boldInStartQuote(line)]
-
         return {
           ...acc,
-          forwarded: true,
           reply,
           nicks,
-          output,
-          message: false,
+          message,
+          forwarded: isForwarded,
+          output: [...acc.output, boldInStartQuote(line)],
         }
       } else if (line.length && line.indexOf('>') === 0 && acc.reply) {
-        const reply = false
-        const output = [...acc.output, boldInStartQuote(line.slice(2))]
-
         return {
           ...acc,
           forwarded,
-          reply,
           nicks,
-          output,
-          message: false,
+          message,
+          reply: false,
+          output: [...acc.output, boldInStartQuote(line.slice(2))],
         }
       } else if (line.length) {
-        const output = [
-          ...acc.output,
-          `${acc.forwarded ? '>>' : '>'}${newLine(line)}`,
-        ]
-
         return {
           ...acc,
           forwarded,
           reply,
           nicks,
-          output,
-          message: false,
+          message,
+          output: [
+            ...acc.output,
+            `${acc.forwarded ? '>>' : '>'}${newLine(line)}`,
+          ],
         }
       }
 
@@ -208,7 +198,11 @@ class PrettyHistoryTelegram extends Component {
     return null
   }
 
-  handleToggle = () => {
+  handleAvatarsToggle = () => {
+    this.setState(prevState => ({isAvatars: !this.state.isAvatars}))
+  }
+
+  handleFocusToggle = () => {
     this.setState(prevState => ({focus: !prevState.focus}))
   }
 
@@ -223,104 +217,88 @@ class PrettyHistoryTelegram extends Component {
     this.setState({output: ''})
   }
 
-  handleClear = (e) => {
-    this.setState({output: '', input: ''})
-  }
+  handleClear = e => this.setState({output: '', input: ''})
+
+  handleSelect = key => this.setState({isMobile: key === MOBILE})
 
   render() {
-    const buttonStyle = {
-      display: 'inline-block',
-      border: '0px solid #fff',
-      backgroundColor: 'black',
-      color: '#fff',
-      borderRight: '3px solid #fff',
-      fontFamily: 'Rubik',
-      cursor: 'pointer',
-      outline: 0,
-    }
-
-    const textareaStyle = {
-      flexBasis: '50%',
-      padding: '10px',
-      display: 'inline-block',
-      border: '2px 0 2px 2px solid black',
-      outline: 'none',
-      borderLeft: 0,
-      resize: 'none',
-      fontFamily: 'Rubik',
-    }
-
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-around',
-          alignItems: 'stretch',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexBasis: '5%',
-            backgroundColor: 'black',
-          }}
-        >
-          <button
-            style={buttonStyle}
+      <div className={styles.container}>
+        <div className={styles.toolbar}>
+          <Button
+            className={styles.button}
+            bsStyle="default"
             onClick={this.handleCopy}
           >
-            {'Copy'}
-          </button>
-          <button
-            style={buttonStyle}
+            Copy
+          </Button>
+          <Button
+            className={styles.button}
+            bsStyle="default"
             onClick={this.handleClear}
           >
-            {'Clear'}
-          </button>
-          <button
-            style={buttonStyle}
+            Clear
+          </Button>
+          <Button
+            className={styles.button}
+            bsStyle="default"
             onClick={this.transform}
           >
-            {'Run'}
-          </button>
-          <label
-            htmlFor="isMobile"
-            style={{
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              userSelect: 'none',
-              marginLeft: '5px',
-            }}
-          >
-            {'Mobile:'}
-            <input
-              id="isMobile"
-              type="checkbox"
-              checked={this.state.mobile}
-              onClick={this.handleCheck}
-              style={{marginLeft: '5px'}}
-            />
-          </label>
+            Run
+          </Button>
+          <ButtonToolbar className={`${styles.dropdown}`} >
+            <DropdownButton
+              id="dropdown-basic"
+              style={{width: '100px'}}
+              title={toUpperFirst(this.state.isMobile ? MOBILE : DESKTOP)}
+            >
+              <MenuItem
+                eventKey={DESKTOP}
+                active={!this.state.isMobile}
+                onSelect={this.handleSelect}
+              >
+                {toUpperFirst(DESKTOP)}
+              </MenuItem>
+              <MenuItem
+                eventKey={MOBILE}
+                active={this.state.isMobile}
+                onSelect={this.handleSelect}
+              >
+                {toUpperFirst(MOBILE)}
+              </MenuItem>
+            </DropdownButton>
+            <div className={styles.toggle}>
+              <label
+                className={styles.title}
+                htmlFor="toggle-avatars"
+              >
+                Avatars:
+              </label>
+              <Toggle
+                id="toggle-avatars"
+                defaultChecked={this.state.isAvatars}
+                onChange={this.handleAvatarsToggle}
+              />
+
+            </div>
+          </ButtonToolbar>
         </div>
-        <div style={{display: 'flex', flexDirection: 'row'}}>
+        <div className={styles.main}>
           <textarea
-            style={textareaStyle}
-            onChange={this.transform}
+            className={styles.area}
             value={this.state.input}
             ref={el => (this.input = el)}
-            onClick={this.handleToggle}
-            placeholder="You paste here"
+            placeholder="You paste here..."
+            onChange={this.transform}
+            onClick={this.handleFocusToggle}
           />
-          <div style={{width: '5px', backgroundColor: 'black'}} />
           <textarea
-            style={textareaStyle}
             readOnly
+            className={styles.area}
             value={this.state.output}
-            onClick={this.handleToggle}
-            placeholder="You copy here"
             ref={el => (this.output = el)}
+            placeholder="You copy here..."
+            onClick={this.handleFocusToggle}
           />
         </div>
       </div>

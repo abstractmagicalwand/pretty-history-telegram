@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Rubik&subset=cyrillic');
-@import '../node_modules/normalize.css/normalize.css';
 
-html, body, div {
+html, body, body > div, body > div > div {
   height: 100%;
   width: 100%;
+  font-family: Rubik;
 }
