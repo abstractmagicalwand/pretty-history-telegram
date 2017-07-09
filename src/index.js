@@ -15,6 +15,7 @@ import partial from 'ramda/src/partial'
 import 'normalize.css/normalize.css'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'react-toggle/style.css'
+import './global.css'
 import styles from './index.css'
 
 import emojis from './emojis-by-categories.json'
@@ -45,7 +46,7 @@ const newLine = finish('\n')
 const border = around('\n***')('***\n')
 const boldInStartQuote = pipe(bold, startQuote)
 
-class PrettyHistoryTelegram extends Component {
+export default class PrettyHistoryTelegram extends Component {
   state = {
     input: '',
     output: '',

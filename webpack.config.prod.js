@@ -1,12 +1,13 @@
-const webpack = require('webpack')
 const path = require('path')
+
+const webpack = require('webpack')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   entry: './src/index.js',
   output: {
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: '/',
   },
   module: {
     rules: [
@@ -37,4 +38,15 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.jsx'],
   },
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new HtmlWebpackPlugin({
+      title: 'Pretty History Telegram',
+      filename: 'index.html',
+      template: 'src/index.ejs',
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'common',
+    }),
+  ],
 }
